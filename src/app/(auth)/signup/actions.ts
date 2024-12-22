@@ -54,6 +54,18 @@ export async function signUp(
       };
     }
 
+    await prisma.$transaction(async (tx) => {
+      await tx.user.create({
+        data: {
+          id: userId,
+          username,
+          displayName: username,
+          email,
+          passwordHash,
+        },
+      });
+    });
+
     const session = await lucia.createSession(userId, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
     cookies().set(
@@ -63,7 +75,6 @@ export async function signUp(
     );
 
     return redirect("/");
-    
   } catch (error) {
     if (isRedirectError(error)) throw error;
     console.error(error);
