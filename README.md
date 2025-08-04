@@ -3,28 +3,29 @@
 Nitchi is a full-stack social media app and a note sharing platform. You can see it as a mix between Twitter and Notion. It's built with Next.js 15. 
 
 Here's the features and technologies that i will use inside it:
--Next.js 15
--Server actions and server components
--TanStack React Query
--Optimistic updates
--Infinite scrolling feeds
--File uploads with drag & drop and copy-paste support (UploadThing)
--Like system
--Follow system
--Comment system
--Notification system
--DM system 
--Bookmarks
--Lucia authentication (username/password & Google OAuth2)
--Postgres DB with Prisma ORM
--Hashtags & mentions
--Full-text search
--Advanced caching & revalidation
--Mobile-responsive layout with Tailwind CSS & Shadcn UI components
--Dark theme, light theme, and system theme
--Real-time form validation with React Hook Form & Zod
--TipTap editor
--Federation with ActivityPub
+
+- Next.js 15
+- Server actions and server components
+- TanStack React Query
+- Optimistic updates
+- Infinite scrolling feeds
+- File uploads with drag & drop and copy-paste support (UploadThing)
+- Like system
+- Follow system
+- Comment system
+- Notification system
+- DM system 
+- Bookmarks
+- Lucia authentication (username/password & Google OAuth2)
+- Postgres DB with Prisma ORM
+- Hashtags & mentions
+- Full-text search
+- Advanced caching & revalidation
+- Mobile-responsive layout with Tailwind CSS & Shadcn UI components
+-  theme, light theme, and system theme
+- Real-time form validation with React Hook Form & Zod
+- TipTap editor
+- Federation with ActivityPub
 
 Nitchi is a rewriting of a beatiful project proposed here by [Coding in Flow on Youtube](https://www.youtube.com/watch?v=TyV12oBDsYI&t=9311s)
 
