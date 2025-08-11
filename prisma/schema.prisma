@@ -4,6 +4,33 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// Enums utiles
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+  PENDING_REVIEW
+  TRASHED
+}
+
+enum PostVisibility {
+  PUBLIC
+  PRIVATE
+  UNLISTED
+  PASSWORD_PROTECTED
+}
+
+enum PostType {
+  NOTICE      
+  PAGE      
+  NOTE
+  BOARD     
+  LINK      
+  PHOTO
+  VIDEO
+  AUDIO
+} 
+
 generator client {
   provider = "prisma-client-js"
   previewFeatures = ["fullTextSearchPostgres"]
@@ -29,7 +56,8 @@ model User {
   privateKey        String?
   preferredUsername String?  @unique
   isRemote          Boolean  @default(false)
-
+  posts             Post[]
+  tags              Tag[]
   sessions          Session[]
   createdAt         DateTime @default(now())
 
@@ -44,4 +72,49 @@ model Session {
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
+}
+
+// Tags (many-to-many)
+model Tag {
+  id        String  @id @default(cuid())
+  name      String
+  slug      String
+  userId    String?         // tags personnels (optionnel). Omit si tu veux des tags globaux
+  user      User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts     Post[]  @relation("PostsOnTags")
+  createdAt DateTime @default(now())
+
+  @@unique([slug, userId]) // slug unique par user (ou mets juste @unique(slug) pour global)
+  @@map("tags")
+}
+
+model Post {
+  id String @id @default(cuid())
+  userId String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Content
+  title        String?
+  slug         String?               // permalink
+  excerpt      String?   @db.Text
+  content      String    @db.Text    // Markdown/HTML/stringified JSON
+
+  // WordPress-like metadats
+  status       PostStatus     @default(DRAFT)
+  visibility   PostVisibility @default(PUBLIC)
+  type         PostType       @default(NOTE)
+
+  // Password protection (si visibility == PASSWORD_PROTECTED)
+  passwordHash String?        
+
+  // URLs & dates
+  canonicalUrl String?  @unique   // public url 
+  publishedAt  DateTime?          
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt 
+
+  // Relations
+  tags         Tag[]     @relation("PostsOnTags")
+  
+  @@map("posts")
 }
