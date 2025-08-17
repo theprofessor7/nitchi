@@ -9,7 +9,7 @@ interface PostProps {
 
 export default function Post({post}:PostProps) {
     return (
-        <article className="space-y-3 rounded-2xl bg-card p-5 shadow-sm">
+        <article className="bg-card text-card-foreground border rounded-xl shadow-sm p-4">
             <div className="flex flex-wrap gap-3">
                 <Link href={`/users/${post.user.username}`}>
                     <UserAvatar avatarUrl={post.user.avatarUrl} />

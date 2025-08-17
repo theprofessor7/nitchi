@@ -19,7 +19,7 @@ export default function PostEditor() {
                 italic: false
             }),
             Placeholder.configure({
-                placeholder: "Create Post"
+                placeholder: "What's crack-a-lackin'?"
             })
         ]
     });
