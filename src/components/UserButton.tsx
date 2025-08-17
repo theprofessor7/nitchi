@@ -20,6 +20,7 @@ import { logout } from "@/app/(auth)/action";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface UserButtonProps {
   className?: string;
@@ -30,7 +31,9 @@ export default function UserButton({ className }: UserButtonProps) {
   const { theme, setTheme } = useTheme(); // theme: "system" | "light" | "dark"
   const [palette, setPalette] = useState<string>("");     // "", "teal", ...
 
-  // Applique l'attribut data-palette sur <html>
+  const QueryClient = useQueryClient();
+
+  // Apply data-palette on <html>
   const applyPalette = (p: string) => {
     const root = document.documentElement;
     if (!p) {
@@ -42,7 +45,7 @@ export default function UserButton({ className }: UserButtonProps) {
     setPalette(p);
   };
 
-  // Charger palette initiale
+  // Charge initial palette
   useEffect(() => {
     const stored = localStorage.getItem("palette") || "";
     applyPalette(stored);
@@ -162,7 +165,10 @@ export default function UserButton({ className }: UserButtonProps) {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={() => { logout(); }}>
+        <DropdownMenuItem onClick={() => {
+          QueryClient.clear(); 
+          logout(); 
+        }}>
           Logout
         </DropdownMenuItem>
       </DropdownMenuContent>
