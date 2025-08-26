@@ -2,7 +2,7 @@ import { PrismaAdapter } from "@lucia-auth/adapter-prisma";
 import { Lucia, Session, User } from "lucia";
 import { cookies } from "next/headers";
 import { cache } from "react";
-import prisma from "./lib/prisma";
+import prisma from "@/lib/prisma"; 
 
 const adapter = new PrismaAdapter(prisma.session, prisma.user);
 
@@ -11,6 +11,8 @@ export const lucia = new Lucia(adapter, {
     expires: false,
     attributes: {
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",    // ✅ doc
+      path: "/",          // ✅ doc
     },
   },
   getUserAttributes(databaseUserAttributes) {
@@ -39,43 +41,32 @@ interface DatabaseUserAttributes {
   googleId: string | null;
 }
 
-export const validateRequest = cache(
-  async (): Promise<
-    { user: User; session: Session } | { user: null; session: null }
-  > => {
-    // @ts-expect-error: VSCode false positive on cookies()
-    const sessionId = cookies().get(lucia.sessionCookieName)?.value ?? null;
+export const validateRequest = cache(async (): Promise<
+  { user: User; session: Session } | { user: null; session: null }
+> => {
+  // ✅ Next 15: cookies() must be awaited
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get(lucia.sessionCookieName)?.value ?? null;
 
-    if (!sessionId) {
-      return {
-        user: null,
-        session: null,
-      };
+  if (!sessionId) {
+    return { user: null, session: null };
+  }
+
+  const result = await lucia.validateSession(sessionId);
+
+  // ⚠️ set() may not be authorized
+  try {
+    if (result.session && result.session.fresh) {
+      const sessionCookie = lucia.createSessionCookie(result.session.id);
+      cookieStore.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
     }
+    if (!result.session) {
+      const sessionCookie = lucia.createBlankSessionCookie();
+      cookieStore.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+    }
+  } catch {
+    // no-op en Server Components; ce sera valide en Route Handlers / Server Actions
+  }
 
-    const result = await lucia.validateSession(sessionId);
-
-    try {
-      if (result.session && result.session.fresh) {
-        const sessionCookie = lucia.createSessionCookie(result.session.id);
-        // @ts-expect-error: VSCode false positive on cookies()
-        cookies().set(
-          sessionCookie.name,
-          sessionCookie.value,
-          sessionCookie.attributes,
-        );
-      }
-      if (!result.session) {
-        const sessionCookie = lucia.createBlankSessionCookie();
-        // @ts-expect-error: VSCode false positive on cookies()
-        cookies().set(
-          sessionCookie.name,
-          sessionCookie.value,
-          sessionCookie.attributes,
-        );
-      }
-    } catch {}
-
-    return result;
-  },
-);
+  return result;
+});
