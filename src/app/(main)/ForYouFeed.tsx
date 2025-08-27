@@ -25,7 +25,7 @@ export default function ForYouFeed() {
         })
         .json<PostsPage>(),
     initialPageParam: undefined as string | undefined, 
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined, // ⬅️ clé : undefined = no more page
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     refetchOnWindowFocus: false,
     staleTime: 30_000,
   });
