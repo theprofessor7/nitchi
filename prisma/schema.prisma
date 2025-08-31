@@ -24,7 +24,8 @@ enum PostType {
   NOTICE      
   PAGE      
   NOTE
-  BOARD     
+  BOARD
+  IMAGE     
   LINK      
   PHOTO
   VIDEO
@@ -57,6 +58,8 @@ model User {
   preferredUsername String?  @unique
   isRemote          Boolean  @default(false)
   posts             Post[]
+  following         Follow[] @relation("Following")
+  followers         Follow[] @relation("Followers")
   tags              Tag[]
   sessions          Session[]
   createdAt         DateTime @default(now())
@@ -79,13 +82,23 @@ model Tag {
   id        String  @id @default(cuid())
   name      String
   slug      String
-  userId    String?         // tags personnels (optionnel). Omit si tu veux des tags globaux
+  userId    String?         
   user      User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   posts     Post[]  @relation("PostsOnTags")
   createdAt DateTime @default(now())
 
   @@unique([slug, userId]) // slug unique par user (ou mets juste @unique(slug) pour global)
   @@map("tags")
+}
+
+model Follow {
+  followerId String
+  follower User @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following User @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
 }
 
 model Post {
