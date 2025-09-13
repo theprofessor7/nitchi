@@ -5,23 +5,32 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const cursor = url.searchParams.get("cursor") ?? undefined;
+    const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
+
     const pageSize = 10;
 
     const { user } = await validateRequest();
-    
+
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const items = await prisma.post.findMany({
-      include: getPostDataInclude(user.id),
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }], // stable order
-      cursor: cursor ? { id: cursor } : undefined,
-      skip: cursor ? 1 : 0,                              
-      take: pageSize + 1,                              
-    });
+        where: {
+            user: {
+                followers: {
+                    some: {
+                        followerId: user.id
+                    }
+                }
+            }
+        },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: getPostDataInclude(user.id),
+        cursor: cursor ? { id: cursor } : undefined,
+        skip: cursor ? 1 : 0,                              
+        take: pageSize + 1
+    })
 
     const hasMore = items.length > pageSize;
     const posts = hasMore ? items.slice(0, -1) : items;
